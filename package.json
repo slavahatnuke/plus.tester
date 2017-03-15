@@ -1,0 +1,23 @@
+{
+  "name": "plus.tester",
+  "version": "0.0.1",
+  "description": "plus tester",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slavahatnuke/plus.tester.git"
+  },
+  "keywords": [
+    "plus",
+    "tester"
+  ],
+  "author": "slava hatnuke",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/slavahatnuke/plus.tester/issues"
+  },
+  "homepage": "https://github.com/slavahatnuke/plus.tester#readme"
+}
