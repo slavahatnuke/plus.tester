@@ -13,13 +13,8 @@ module.exports = class WebTester {
         this.webdriverSizzle = require('./webdriver-sizzle');
 
         this.options = {
-            waitTimeout: 10000
+            waitTimeout: 10 * 1000
         };
-    }
-
-    setup(options = {}) {
-        this.options = Object.assign(this.options, options);
-        return this;
     }
 
     iOpen(url) {
@@ -34,49 +29,49 @@ module.exports = class WebTester {
         return this.getDriver().then((driver) => driver.navigate().refresh());
     }
 
-    iSee(path) {
+    iSee(css3selector) {
         return this
-            .wait(() => this.find(path).then((elements) => !!elements.length))
-            .catch((err) => Promise.reject(`I should see: '${path}' : ${err.message}`));
+            .wait(() => this.find(css3selector).then((elements) => !!elements.length))
+            .catch((err) => Promise.reject(`I should see: '${css3selector}' : ${err.message}`));
     }
 
-    iDontSee(path) {
+    iDontSee(css3selector) {
         return this
-            .wait(() => this.find(path).then((elements) => !elements.length))
-            .catch((err) => Promise.reject(`I should NOT see: '${path}' : ${err.message}`));
+            .wait(() => this.find(css3selector).then((elements) => !elements.length))
+            .catch((err) => Promise.reject(`I should NOT see: '${css3selector}' : ${err.message}`));
     }
 
-    iSeeValue(path, value) {
-        return this.iSee(path)
-            .then(() => this.wait(() => this.get(path).getAttribute('value').then((x) => x == value)))
-            .catch((err) => Promise.reject(`I should see value: '${value}' in '${path}' : ${err.message}`));
+    iSeeValue(css3selector, value) {
+        return this.iSee(css3selector)
+            .then(() => this.wait(() => this.get(css3selector).getAttribute('value').then((x) => x == value)))
+            .catch((err) => Promise.reject(`I should see value: '${value}' in '${css3selector}' : ${err.message}`));
     }
 
-    iDontSeeValue(path, value) {
-        return this.wait(() => this.get(path).getAttribute('value').then((x) => x != value))
-            .catch((err) => Promise.reject(`I should NOT see value: '${value}' in '${path}' : ${err.message}`));
+    iDontSeeValue(css3selector, value) {
+        return this.wait(() => this.get(css3selector).getAttribute('value').then((x) => x != value))
+            .catch((err) => Promise.reject(`I should NOT see value: '${value}' in '${css3selector}' : ${err.message}`));
     }
 
-    iClick(path) {
-        return this.iSee(path)
-            .then(() => this.get(path).click())
-            .catch((err) => Promise.reject(`I can't click on: '${path}' : ${err.message}`));
+    iClick(css3selector) {
+        return this.iSee(css3selector)
+            .then(() => this.get(css3selector).click())
+            .catch((err) => Promise.reject(`I can't click on: '${css3selector}' : ${err.message}`));
     }
 
-    iType(path, value) {
-        return this.iSee(path)
-            .then(() => this.get(path).clear())
-            .then(() => this.get(path).sendKeys(value));
+    iType(css3selector, value) {
+        return this.iSee(css3selector)
+            .then(() => this.get(css3selector).clear())
+            .then(() => this.get(css3selector).sendKeys(value));
     }
 
-    iCount(path, n) {
-        return this.wait(() => this.find(path).then((elements) => elements.length == n))
-            .catch((err) => Promise.reject(`I should count: '${n}' elements in '${path}', found only '${n}'  : ${err.message}`));
+    iCount(css3selector, n) {
+        return this.wait(() => this.find(css3selector).then((elements) => elements.length == n))
+            .catch((err) => Promise.reject(`I should count: '${n}' elements in '${css3selector}', found only '${n}'  : ${err.message}`));
     }
 
-    iDontCount(path, n) {
-        return this.wait(() => this.find(path).then((elements) => elements.length != n))
-            .catch((err) => Promise.reject(`I should count: '${n}' elements in '${path}', found only '${n}'  : ${err.message}`));
+    setup(options = {}) {
+        this.options = Object.assign(this.options, options);
+        return this;
     }
 
     getDriver() {
