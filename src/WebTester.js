@@ -10,7 +10,7 @@ module.exports = class WebTester {
 
         this.children = [];
 
-        this.webdriverSizzle = require('./webdriver-sizzle');
+        this.webdriverSizzle = require('plus.webdriver-sizzle');
 
         this.options = {
             waitTimeout: 10 * 1000
