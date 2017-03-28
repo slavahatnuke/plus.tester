@@ -183,7 +183,7 @@ module.exports = class WebTester {
         let parent = Object.getPrototypeOf(Object.getPrototypeOf(self));
 
         if(Object.prototype !== parent) {
-            names = [...names, Object.getOwnPropertyNames(parent)];
+            names = [...names, ...Object.getOwnPropertyNames(parent)];
         }
 
         names = [...new Set(names)];
