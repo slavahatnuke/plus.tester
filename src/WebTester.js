@@ -52,6 +52,19 @@ module.exports = class WebTester {
             .catch((err) => Promise.reject(`I should NOT see value: '${value}' in '${css3selector}' : ${err.message}`));
     }
 
+    iGetAttribute(css3selector, attribute) {
+        return this.iSee(css3selector)
+            .then(() => this.get(css3selector).getAttribute(attribute))
+            .catch((err) => Promise.reject(`I get attribute: '${attribute}' in '${css3selector}' : ${err.message}`));
+    }
+
+    iFindAttribute(css3selector, attribute) {
+        return this.iSee(css3selector)
+            .then(() => this.find(css3selector))
+            .then((elements) => Promise.all(elements.map((element) => element.getAttribute(attribute))))
+            .catch((err) => Promise.reject(`I should find attributes: '${attribute}' in '${css3selector}' : ${err.message}`));
+    }
+
     iClick(css3selector) {
         return this.iSee(css3selector)
             .then(() => this.get(css3selector).click())
@@ -69,8 +82,35 @@ module.exports = class WebTester {
             .catch((err) => Promise.reject(`I should count: '${n}' elements in '${css3selector}', found only '${n}'  : ${err.message}`));
     }
 
+    waitUpTo(waitTimeout, promiseOrCreator) {
+        let options = this.getOptions();
+
+        return Promise.resolve()
+            .then(() => this.setup({waitTimeout: waitTimeout}))
+            .then(() => {
+                if (promiseOrCreator instanceof Function) {
+                    return promiseOrCreator();
+                } else {
+                    return promiseOrCreator;
+                }
+            })
+            .then((result) => {
+                this.setup(options);
+                return result;
+            });
+    }
+
     setup(options = {}) {
         this.options = Object.assign(this.options, options);
+        return this;
+    }
+
+    getOptions() {
+        return Object.assign({}, this.options);
+    }
+
+    setOptions(options = {}) {
+        this.setup(options);
         return this;
     }
 
@@ -105,18 +145,6 @@ module.exports = class WebTester {
         return this.driverPromise;
     }
 
-    applyTo(context) {
-        let self = this;
-
-        for (let name of Object.getOwnPropertyNames(Object.getPrototypeOf(self))) {
-            let method = self[name];
-
-            if (method instanceof Function && !(method === WebTester)) {
-                context[name] = (...args) => method.apply(this, args);
-            }
-        }
-    }
-
     find(path) {
         return this.$.all(path);
     }
@@ -139,5 +167,33 @@ module.exports = class WebTester {
         let child = new WebTester(this.driverFactory).setup(this.options);
         this.children.push(child);
         return child;
+    }
+
+
+    applyTo(context) {
+        let self = this;
+
+        let names = [
+            ...Object.getOwnPropertyNames(WebTester.prototype),
+            ...Object.getOwnPropertyNames(Object.getPrototypeOf(self)),
+            ...Object.getOwnPropertyNames(self),
+            ...Object.keys(self)
+        ];
+
+        let parent = Object.getPrototypeOf(Object.getPrototypeOf(self));
+
+        if(Object.prototype !== parent) {
+            names = [...names, Object.getOwnPropertyNames(parent)];
+        }
+
+        names = [...new Set(names)];
+
+        for (let name of names) {
+            let method = self[name];
+
+            if (method instanceof Function && !(method === WebTester)) {
+                context[name] = (...args) => method.apply(this, args);
+            }
+        }
     }
 };
