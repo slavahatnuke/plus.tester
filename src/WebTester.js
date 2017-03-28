@@ -9,6 +9,7 @@ module.exports = class WebTester {
         this.$ = null;
 
         this.children = [];
+        this.testers = {};
 
         this.webdriverSizzle = require('plus.webdriver-sizzle');
 
@@ -158,9 +159,9 @@ module.exports = class WebTester {
     }
 
     stop() {
-        return this.getDriver()
-            .then((driver) => driver.quit())
-            .then(() => Promise.all(this.children.map((child) => child.stop())));
+        return Promise.resolve()
+            .then(() => this.driver ? this.driver.quit() : null)
+            .then(() => Promise.all(this.children.map((child) => child.stop())))
     }
 
     new() {
@@ -182,7 +183,7 @@ module.exports = class WebTester {
 
         let parent = Object.getPrototypeOf(Object.getPrototypeOf(self));
 
-        if(Object.prototype !== parent) {
+        if (Object.prototype !== parent) {
             names = [...names, ...Object.getOwnPropertyNames(parent)];
         }
 
@@ -195,5 +196,20 @@ module.exports = class WebTester {
                 context[name] = (...args) => method.apply(this, args);
             }
         }
+    }
+
+    getTester(name) {
+        return Promise.resolve()
+            .then(() => {
+                if (this.testers[name]) {
+                    return this.testers[name];
+                } else {
+                    return this.new();
+                }
+            })
+            .then((tester) => {
+                this.testers[name] = tester;
+                return tester;
+            });
     }
 };
