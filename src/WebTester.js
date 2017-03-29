@@ -83,9 +83,14 @@ module.exports = class WebTester {
             .catch((err) => Promise.reject(`I should count: '${n}' elements in '${css3selector}', found only '${n}'  : ${err.message}`));
     }
 
-    iUseFrame(css3selector) {
+    iUseFrame(css2selector) {
+        const {By} = require('selenium-webdriver');
+
         return this.getDriver()
-            .then((driver) => driver.switchTo().frame(this.get(css3selector)));
+            .then((driver) => {
+                return Promise.resolve()
+                    .then(() => driver.switchTo().frame(driver.findElement(By.css(css2selector))))
+            });
     }
 
     iDontUseFrame() {
@@ -99,7 +104,7 @@ module.exports = class WebTester {
                 return Promise.resolve()
                     .then(() => driver.getAllWindowHandles())
                     .then((tabs) => {
-                        if(!tabs[tabIndex]) {
+                        if (!tabs[tabIndex]) {
                             return Promise.reject(new Error('Tab has not been found'));
                         }
 
