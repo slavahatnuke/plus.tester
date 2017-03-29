@@ -1,6 +1,6 @@
 {
   "name": "plus.tester",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "plus tester",
   "main": "index.js",
   "scripts": {

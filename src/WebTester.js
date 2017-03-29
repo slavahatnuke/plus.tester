@@ -83,36 +83,29 @@ module.exports = class WebTester {
             .catch((err) => Promise.reject(`I should count: '${n}' elements in '${css3selector}', found only '${n}'  : ${err.message}`));
     }
 
-    waitUpTo(waitTimeout, promiseOrCreator) {
-        let options = this.getOptions();
+    iUseFrame(css3selector) {
+        return this.getDriver()
+            .then((driver) => driver.switchTo().frame(this.get(css3selector)));
+    }
 
-        return Promise.resolve()
-            .then(() => this.setup({waitTimeout: waitTimeout}))
-            .then(() => {
-                if (promiseOrCreator instanceof Function) {
-                    return promiseOrCreator();
-                } else {
-                    return promiseOrCreator;
-                }
-            })
-            .then((result) => {
-                this.setup(options);
-                return result;
+    iDontUseFrame() {
+        return this.getDriver()
+            .then((driver) => driver.switchTo().defaultContent());
+    }
+
+    iUseTab(tabIndex) {
+        return this.getDriver()
+            .then((driver) => {
+                return Promise.resolve()
+                    .then(() => driver.getAllWindowHandles())
+                    .then((tabs) => {
+                        if(!tabs[tabIndex]) {
+                            return Promise.reject(new Error('Tab has not been found'));
+                        }
+
+                        return driver.switchTo().window(tabs[tabIndex]);
+                    });
             });
-    }
-
-    setup(options = {}) {
-        this.options = Object.assign(this.options, options);
-        return this;
-    }
-
-    getOptions() {
-        return Object.assign({}, this.options);
-    }
-
-    setOptions(options = {}) {
-        this.setup(options);
-        return this;
     }
 
     getDriver() {
@@ -146,6 +139,38 @@ module.exports = class WebTester {
         return this.driverPromise;
     }
 
+    waitUpTo(waitTimeout, promiseOrCreator) {
+        let options = this.getOptions();
+
+        return Promise.resolve()
+            .then(() => this.setup({waitTimeout: waitTimeout}))
+            .then(() => {
+                if (promiseOrCreator instanceof Function) {
+                    return promiseOrCreator();
+                } else {
+                    return promiseOrCreator;
+                }
+            })
+            .then((result) => {
+                this.setup(options);
+                return result;
+            });
+    }
+
+    setup(options = {}) {
+        this.options = Object.assign(this.options, options);
+        return this;
+    }
+
+    getOptions() {
+        return Object.assign({}, this.options);
+    }
+
+    setOptions(options = {}) {
+        this.setup(options);
+        return this;
+    }
+
     find(path) {
         return this.$.all(path);
     }
@@ -154,8 +179,8 @@ module.exports = class WebTester {
         return this.$(path);
     }
 
-    wait(wait) {
-        return this.getDriver().then((driver) => driver.wait(wait, this.options.waitTimeout));
+    wait(waitAcceptor) {
+        return this.getDriver().then((driver) => driver.wait(waitAcceptor, this.options.waitTimeout));
     }
 
     stop() {
@@ -169,7 +194,6 @@ module.exports = class WebTester {
         this.children.push(child);
         return child;
     }
-
 
     applyTo(context) {
         let self = this;
