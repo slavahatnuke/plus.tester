@@ -113,6 +113,138 @@ module.exports = class WebTester {
             });
     }
 
+    iWaitInteraction(promiseCreator) {
+        let timeout = this.options.waitTimeout;
+        let waitingPeriod = parseInt(timeout / 20) || 100;
+
+        let gotResult = false;
+        let resultError = false;
+
+        let timeoutTimer = null;
+        let periodInterval = null;
+        let working = false;
+
+        let check = () => {
+            return Promise.resolve()
+                .then(() => promiseCreator instanceof Function ? promiseCreator() : promiseCreator)
+                .then(() => gotResult = true)
+                .catch((err) => {
+                    resultError = err;
+                    gotResult = false;
+                    return gotResult;
+                })
+        };
+
+        let waitFor = () => {
+            let stop = () => {
+                timeoutTimer && clearTimeout(timeoutTimer);
+                periodInterval && clearInterval(periodInterval);
+            };
+
+            return new Promise((resolve, reject) => {
+                periodInterval = setInterval(() => {
+                    if (!working) {
+                        working = true;
+                        Promise.resolve()
+                            .then(() => check())
+                            .then(() => {
+                                if (gotResult) {
+                                    resolve();
+                                }
+                            })
+                            .then(() => working = false)
+                            .catch(() => working = false);
+                    }
+                }, waitingPeriod);
+
+                timeoutTimer = setTimeout(() => {
+                    let error = resultError || 'No result';
+
+                    reject(new Error(`Exceeded interaction timeout ${timeout}ms : ${error}`));
+                }, timeout);
+            })
+
+                .then(() => stop())
+                .catch((err) => {
+                    stop();
+                    return Promise.reject(err);
+                });
+        };
+
+        return Promise.resolve()
+            .then(() => {
+                return Promise.resolve()
+                    .then(() => check())
+                    .then(() => gotResult || waitFor());
+            })
+    }
+
+    iWaitReload(promiseCreator, timeout, reloadPeriod = 1000) {
+        let gotResult = false;
+        let resultError = false;
+
+        let timeoutTimer = null;
+        let periodInterval = null;
+        let working = false;
+
+        let check = () => {
+            return Promise.resolve()
+                .then(() => promiseCreator instanceof Function ? promiseCreator() : promiseCreator)
+                .then(() => gotResult = true)
+                .catch((err) => {
+                    resultError = err;
+                    gotResult = false;
+                    return gotResult;
+                })
+        };
+
+        let waitFor = () => {
+            let stop = () => {
+                timeoutTimer && clearTimeout(timeoutTimer);
+                periodInterval && clearInterval(periodInterval);
+            };
+
+            return new Promise((resolve, reject) => {
+                periodInterval = setInterval(() => {
+                    if (!working) {
+                        working = true;
+                        this.iReload()
+                            .then(() => check())
+                            .then(() => {
+                                if (gotResult) {
+                                    resolve();
+                                }
+                            })
+                            .then(() => working = false)
+                            .catch(() => working = false);
+                    }
+                }, reloadPeriod);
+
+                timeoutTimer = setTimeout(() => {
+                    let error = resultError || 'No result';
+
+                    reject(new Error(`Exceeded reload timeout ${timeout}ms : ${error}`));
+                }, timeout);
+            })
+
+                .then(() => stop())
+                .catch((err) => {
+                    stop();
+                    return Promise.reject(err);
+                });
+        };
+
+        return this.waitUpTo(reloadPeriod, () => {
+            return Promise.resolve()
+                .then(() => {
+                    return Promise.resolve()
+                        .then(() => check())
+                        .then(() => gotResult || waitFor());
+                });
+        });
+
+    }
+
     getDriver() {
         if (!this.driverPromise) {
             this.driverPromise = Promise.resolve()
@@ -240,138 +372,5 @@ module.exports = class WebTester {
                 this.testers[name] = tester;
                 return tester;
             });
-    }
-
-    iWaitInteraction(promiseCreator) {
-        let timeout = this.options.waitTimeout;
-        let waitingPeriod = parseInt(timeout / 10);
-
-        let gotResult = false;
-        let resultError = false;
-
-        let timeoutTimer = null;
-        let periodInterval = null;
-        let working = false;
-
-        let check = () => {
-            return Promise.resolve()
-                .then(() => promiseCreator instanceof Function ? promiseCreator() : promiseCreator)
-                .then(() => gotResult = true)
-                .catch((err) => {
-                    resultError = err;
-                    gotResult = false;
-                    return gotResult;
-                })
-        };
-
-        let waitFor = () => {
-            let stop = () => {
-                timeoutTimer && clearTimeout(timeoutTimer);
-                periodInterval && clearInterval(periodInterval);
-            };
-
-            return new Promise((resolve, reject) => {
-                periodInterval = setInterval(() => {
-                    if (!working) {
-                        working = true;
-                        Promise.resolve()
-                            .then(() => check())
-                            .then(() => {
-                                if (gotResult) {
-                                    resolve();
-                                }
-                            })
-                            .then(() => working = false)
-                            .catch(() => working = false);
-                    }
-                }, waitingPeriod);
-
-                timeoutTimer = setTimeout(() => {
-                    let error = resultError || 'No result';
-
-                    reject(new Error(`Exceeded interaction timeout ${timeout}ms : ${error}`));
-                }, timeout);
-            })
-
-                .then(() => stop())
-                .catch((err) => {
-                    stop();
-                    return Promise.reject(err);
-                });
-        };
-
-        return Promise.resolve()
-            .then(() => {
-                return Promise.resolve()
-                    .then(() => check())
-                    .then(() => gotResult || waitFor());
-            })
-    }
-
-
-    iWaitReload(promiseCreator, timeout, reloadPeriod = 1000) {
-        let gotResult = false;
-        let resultError = false;
-
-        let timeoutTimer = null;
-        let periodInterval = null;
-        let working = false;
-
-        let check = () => {
-            return Promise.resolve()
-                .then(() => promiseCreator instanceof Function ? promiseCreator() : promiseCreator)
-                .then(() => gotResult = true)
-                .catch((err) => {
-                    resultError = err;
-                    gotResult = false;
-                    return gotResult;
-                })
-        };
-
-        let waitFor = () => {
-            let stop = () => {
-                timeoutTimer && clearTimeout(timeoutTimer);
-                periodInterval && clearInterval(periodInterval);
-            };
-
-            return new Promise((resolve, reject) => {
-                periodInterval = setInterval(() => {
-                    if (!working) {
-                        working = true;
-                        this.iReload()
-                            .then(() => check())
-                            .then(() => {
-                                if (gotResult) {
-                                    resolve();
-                                }
-                            })
-                            .then(() => working = false)
-                            .catch(() => working = false);
-                    }
-                }, reloadPeriod);
-
-                timeoutTimer = setTimeout(() => {
-                    let error = resultError || 'No result';
-
-                    reject(new Error(`Exceeded reload timeout ${timeout}ms : ${error}`));
-                }, timeout);
-            })
-
-                .then(() => stop())
-                .catch((err) => {
-                    stop();
-                    return Promise.reject(err);
-                });
-        };
-
-        return this.waitUpTo(reloadPeriod, () => {
-            return Promise.resolve()
-                .then(() => {
-                    return Promise.resolve()
-                        .then(() => check())
-                        .then(() => gotResult || waitFor());
-                });
-        });
-
     }
 };
