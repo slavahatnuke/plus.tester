@@ -8,12 +8,10 @@
     const seleniumWebdriver = require('selenium-webdriver');
     const { WebTester } = require('plus.tester');
 
-    this.tester = new WebTester(() => new seleniumWebdriver.Builder().forBrowser('chrome').build());
+    let tester = new WebTester(() => new seleniumWebdriver.Builder().forBrowser('chrome').build());
 
-    this.tester.getDriver()
+    tester.getDriver()
          .then((driver) => driver.manage().timeouts().pageLoadTimeout(30 * 1000));
-
-    this.tester.applyTo(this);
 ```
 
 ### Examples with cucumber.js
