@@ -12,6 +12,8 @@
 
     this.tester.getDriver()
          .then((driver) => driver.manage().timeouts().pageLoadTimeout(30 * 1000));
+
+    this.tester.applyTo(this);
 ```
 
 ### Examples with cucumber.js
