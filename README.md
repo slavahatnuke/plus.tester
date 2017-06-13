@@ -86,3 +86,20 @@ defineSupportCode(function({After}) {
 
 ### WebTester Api
 ![WebTester](./docs/WebTester.methods.png "WebTester API")
+
+## plus.tester - cheerio
+- `npm i cheerio request-promise --save-dev`
+
+### How to use
+In same way
+```javascript
+const { WebTesterCheerio } = require('plus.tester');
+const tester = new WebTesterCheerio();
+
+tester.iOpen('http://plus1generation.com/')
+    .then(() => tester.iSee('div'))
+    .then(() => tester.iFindAttribute('*', 'innerText'))
+    .then((texts) => console.log(texts))
+    .then(() => tester.iFindAttribute('*[href]', 'href'))
+    .then((links) => console.log(links))
+```
